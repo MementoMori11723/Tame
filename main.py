@@ -1,5 +1,7 @@
 import pygame 
 import os
+
+pygame.init()
 pygame.font.init()
 pygame.mixer.init()
 
@@ -9,6 +11,8 @@ pygame.display.set_caption("Tame")
 BORDER = pygame.Rect(WIDTH//2,0,8,HEIGHT)
 HEALTH_FONTS = pygame.font.SysFont('comicsans',40)
 WINNER_FONTS = pygame.font.SysFont('comicsans',100)
+HIT_SOUND = pygame.mixer.Sound(os.path.join('Assets','Grenade+1.mp3'))
+FIRE_SOUND = pygame.mixer.Sound(os.path.join('Assets','Gun+Silencer.mp3'))
 RED,YELLOW,BLACK,WHITE,FPS,VELOCITY,SPACESHIP_SIZE,BULLET_VEL,MAX_BULLETS  = (255,0,0),(255,255,0),(0,0,255),(255,255,255),60,3,(55,40),7,5
 YELLOW_HIT,RED_HIT = pygame.USEREVENT + 1, pygame.USEREVENT + 2
 YELLOW_SPACESHIP = pygame.transform.rotate(pygame.transform.scale(pygame.image.load(os.path.join('Assets','spaceship_yellow.png')),SPACESHIP_SIZE), 90)
@@ -82,19 +86,23 @@ def main():
         clock.tick(FPS)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                run = False
                 pygame.quit()
+                run = False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LCTRL and len(yellow_bullets) < MAX_BULLETS:
                     bullet = pygame.Rect(yellow.x + yellow.width, yellow.y + yellow.height//2,10,5)
                     yellow_bullets.append(bullet)
+                    FIRE_SOUND.play()
                 if event.key == pygame.K_RCTRL and len(red_bullets) < MAX_BULLETS:
                     bullet = pygame.Rect(red.x, red.y + red.height//2,10,5)
                     red_bullets.append(bullet)
+                    FIRE_SOUND.play()
             if event.type == RED_HIT:
                 red_health -= 1
+                HIT_SOUND.play()
             if event.type == YELLOW_HIT:
                 yellow_health -= 1
+                HIT_SOUND.play()
         winner_text = ""
         if red_health <= 0:   
             winner_text = "Yellow Wins!"
@@ -102,6 +110,8 @@ def main():
             winner_text = "Red Wins!"
         if winner_text != "":
             draw_winner(winner_text)
+            break
+        if run == False:
             break
         keys_pressed = pygame.key.get_pressed()
         move_yellow(keys_pressed,yellow)
